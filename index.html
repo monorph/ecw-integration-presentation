@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eClinicalWorks Integration — AssociatesMD</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0d1117;
+    --paper: #f8f7f4;
+    --forest: #1a4d2e;
+    --forest-light: #2d7a4f;
+    --sage: #e8f0e6;
+    --amber: #c4883a;
+    --amber-light: #fdf6e3;
+    --rust: #9b3b3b;
+    --rust-light: #fdf0f0;
+    --slate: #64748b;
+    --border: #d6d3cd;
+    --card: #fffef9;
+    --teal: #0f766e;
+    --teal-light: #e6f5f3;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    font-size: 16px;
+    background: #0b0f14;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    color: var(--ink);
+    background: #0b0f14;
+    overflow-x: hidden;
+  }
+
+  /* ── Nav ── */
+  .nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background: rgba(11,15,20,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7rem 2rem;
+  }
+
+  .nav .brand {
+    font-family: 'Playfair Display', serif;
+    color: var(--sage);
+    font-size: 0.95rem;
+  }
+
+  .nav .ctrls {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .nav button {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #e8f0e6;
+    padding: 0.35rem 0.9rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: 'Source Sans 3', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 500;
+    transition: background 0.2s;
+  }
+
+  .nav button:hover { background: rgba(255,255,255,0.13); }
+
+  .nav .counter {
+    color: rgba(232,240,230,0.4);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    margin: 0 1rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Deck ── */
+  .deck {
+    padding-top: 55px;
+    scroll-snap-type: y mandatory;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .slide {
+    scroll-snap-align: start;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+
+  .si {
+    width: 100%;
+    max-width: 1280px;
+    min-height: 620px;
+    background: var(--paper);
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+    position: relative;
+    animation: rise 0.5s ease-out;
+  }
+
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .sp {
+    padding: 3.5rem 4.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 620px;
+  }
+
+  .sn {
+    position: absolute;
+    bottom: 1.5rem;
+    right: 2.5rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--slate);
+    opacity: 0.4;
+  }
+
+  /* ── Typography ── */
+  .tag {
+    display: inline-block;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--forest);
+    border: 1.5px solid var(--forest);
+    padding: 0.2rem 0.7rem;
+    border-radius: 100px;
+    margin-bottom: 1.25rem;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 400;
+    font-size: 2.1rem;
+    line-height: 1.15;
+    margin-bottom: 1.25rem;
+  }
+
+  h3 {
+    font-family: 'Source Sans 3', sans-serif;
+    font-weight: 700;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--forest);
+    margin-bottom: 0.6rem;
+  }
+
+  p.lead {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--slate);
+    max-width: 580px;
+  }
+
+  /* ── Title ── */
+  .slide-title .si {
+    background: var(--ink);
+    color: var(--paper);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide-title .si::before {
+    content: '';
+    position: absolute;
+    top: -40%;
+    right: -25%;
+    width: 700px;
+    height: 700px;
+    background: radial-gradient(circle, rgba(26,77,46,0.2) 0%, transparent 70%);
+  }
+
+  .slide-title .si::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--forest), var(--forest-light), var(--amber));
+  }
+
+  .slide-title h1 {
+    font-size: 3.5rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .slide-title h1 em {
+    font-style: italic;
+    color: var(--forest-light);
+  }
+
+  .slide-title .sub {
+    font-size: 1.05rem;
+    color: rgba(248,247,244,0.45);
+    line-height: 1.7;
+    max-width: 520px;
+  }
+
+  .slide-title .meta {
+    margin-top: 2.5rem;
+    display: flex;
+    gap: 2.5rem;
+    font-size: 0.78rem;
+    color: rgba(248,247,244,0.3);
+  }
+
+  .slide-title .meta strong {
+    color: rgba(248,247,244,0.6);
+    display: block;
+    margin-bottom: 0.2rem;
+    font-weight: 600;
+  }
+
+  /* ── Layouts ── */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1.25rem; }
+  .g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 1rem; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    position: relative;
+  }
+
+  .card.dark {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: transparent;
+  }
+
+  .card.dark h3 { color: var(--forest-light); }
+  .card.dark li, .card.dark p { color: rgba(248,247,244,0.65); }
+
+  .card.forest { border-top: 3px solid var(--forest); }
+  .card.amber { border-top: 3px solid var(--amber); }
+  .card.teal { border-top: 3px solid var(--teal); }
+  .card.rust { border-top: 3px solid var(--rust); }
+
+  .card-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  /* ── Table ── */
+  .dt {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  .dt th {
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--slate);
+    padding: 0.65rem 0.9rem;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .dt td {
+    padding: 0.7rem 0.9rem;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+
+  .dt tr:last-child td { border-bottom: none; }
+  .dt .hl { background: rgba(26,77,46,0.04); }
+  .dt .mono { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; font-weight: 500; }
+  .dt .total td { border-top: 2px solid var(--ink); border-bottom: none; font-weight: 700; padding-top: 0.9rem; }
+
+  /* ── Lists ── */
+  ul.cl {
+    list-style: none;
+    padding: 0;
+  }
+
+  ul.cl li {
+    padding: 0.4rem 0 0.4rem 1.4rem;
+    position: relative;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: #374151;
+  }
+
+  ul.cl li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.75rem;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--forest);
+  }
+
+  ul.ck li::before {
+    content: '\2713';
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--forest-light);
+    font-weight: 600;
+    font-size: 0.75rem;
+    background: none;
+    width: auto;
+    height: auto;
+    border-radius: 0;
+    top: 0.4rem;
+  }
+
+  /* ── Highlight Box ── */
+  .hb {
+    border-left: 3px solid var(--forest);
+    background: rgba(26,77,46,0.05);
+    padding: 0.9rem 1.15rem;
+    border-radius: 0 7px 7px 0;
+    margin-top: 1.25rem;
+  }
+
+  .hb p { font-size: 0.88rem; line-height: 1.55; margin: 0; }
+  .hb strong { color: var(--forest); }
+
+  .hb.amber {
+    border-left-color: var(--amber);
+    background: rgba(196,136,58,0.06);
+  }
+  .hb.amber strong { color: var(--amber); }
+
+  .hb.rust {
+    border-left-color: var(--rust);
+    background: rgba(155,59,59,0.05);
+  }
+  .hb.rust strong { color: var(--rust); }
+
+  /* ── Architecture Diagram ── */
+  .arch {
+    background: var(--ink);
+    color: #c9d1d9;
+    padding: 1.75rem 2rem;
+    border-radius: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    line-height: 1.8;
+    white-space: pre;
+    overflow-x: auto;
+  }
+
+  .arch .grn { color: #7ee787; }
+  .arch .amb { color: #e3b341; }
+  .arch .blu { color: #79c0ff; }
+  .arch .dim { color: #484f58; }
+  .arch .cyn { color: #56d4dd; }
+
+  /* ── Phase Bars ── */
+  .phase-row {
+    display: flex;
+    align-items: stretch;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    margin-bottom: 0.75rem;
+  }
+
+  .phase-label {
+    width: 140px;
+    min-width: 140px;
+    padding: 1rem 1.1rem;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .phase-label .pw { font-family: 'Source Sans 3', sans-serif; font-size: 0.72rem; font-weight: 400; margin-top: 0.2rem; opacity: 0.7; text-transform: none; letter-spacing: 0; }
+
+  .phase-body {
+    flex: 1;
+    padding: 1rem 1.25rem;
+    border-left: 1px solid var(--border);
+  }
+
+  .phase-body ul { list-style: none; padding: 0; }
+  .phase-body li { font-size: 0.82rem; line-height: 1.5; padding: 0.15rem 0 0.15rem 1rem; position: relative; }
+  .phase-body li::before { content: '>'; font-family: 'IBM Plex Mono', monospace; position: absolute; left: 0; font-size: 0.7rem; font-weight: 600; color: var(--forest-light); }
+
+  .p-green .phase-label { background: var(--sage); color: var(--forest); }
+  .p-amber .phase-label { background: var(--amber-light); color: #8a6d1b; }
+  .p-teal .phase-label { background: var(--teal-light); color: var(--teal); }
+  .p-rust .phase-label { background: var(--rust-light); color: var(--rust); }
+
+  /* ── Compare Bar ── */
+  .cbar {
+    display: flex;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+
+  .cbar .col {
+    flex: 1;
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .cbar .col:not(:last-child) { border-right: 1px solid var(--border); }
+
+  .cbar .cl { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.15em; font-weight: 700; color: var(--slate); margin-bottom: 0.4rem; }
+  .cbar .cv { font-family: 'Playfair Display', serif; font-size: 1.5rem; }
+  .cbar .cn { font-size: 0.72rem; color: var(--slate); margin-top: 0.2rem; }
+
+  /* ── Dashboard Preview ── */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .dash-card {
+    background: var(--ink);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    color: var(--paper);
+  }
+
+  .dash-card .dc-label {
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(248,247,244,0.4);
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+
+  .dash-card .dc-val {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    line-height: 1;
+    margin-bottom: 0.25rem;
+  }
+
+  .dash-card .dc-sub {
+    font-size: 0.72rem;
+    color: rgba(248,247,244,0.4);
+  }
+
+  /* ── CTA ── */
+  .slide-cta .si {
+    background: var(--ink);
+    color: var(--paper);
+    text-align: center;
+  }
+
+  .slide-cta h1 { font-size: 2.8rem; margin-bottom: 0.75rem; }
+  .slide-cta h1 em { color: var(--forest-light); font-style: italic; }
+  .slide-cta p { color: rgba(248,247,244,0.45); font-size: 1rem; max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+  .cta-grid {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-top: 2.5rem;
+    flex-wrap: wrap;
+  }
+
+  .cta-item { text-align: center; }
+  .cta-step { font-family: 'IBM Plex Mono', monospace; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.2em; color: var(--forest-light); margin-bottom: 0.4rem; }
+  .cta-text { font-size: 0.85rem; color: rgba(248,247,244,0.6); }
+  .cta-text strong { color: var(--paper); }
+
+  .fn {
+    position: absolute;
+    bottom: 1.5rem;
+    left: 4.5rem;
+    font-size: 0.68rem;
+    color: var(--slate);
+    opacity: 0.5;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sp { padding: 2.5rem; }
+    .slide-title h1 { font-size: 2.2rem; }
+    h2 { font-size: 1.5rem; }
+    .g2, .g3, .g4 { grid-template-columns: 1fr; }
+    .dash-grid { grid-template-columns: 1fr 1fr; }
+    .phase-row { flex-direction: column; }
+    .phase-label { width: 100%; min-width: 100%; }
+    .phase-body { border-left: none; border-top: 1px solid var(--border); }
+  }
+
+  @media print {
+    .nav { display: none; }
+    .deck { scroll-snap-type: none; height: auto; overflow: visible; }
+    .slide { min-height: auto; page-break-after: always; padding: 0; }
+    .si { box-shadow: none; border-radius: 0; border: 1px solid #ccc; }
+    body { background: white; }
+  }
+</style>
+</head>
+<body>
+
+<div class="nav">
+  <div class="brand">AssociatesMD &mdash; eCW Integration</div>
+  <div class="ctrls">
+    <button onclick="prev()">&#8592; Prev</button>
+    <span class="counter" id="ctr">01 / 12</span>
+    <button onclick="next()">Next &#8594;</button>
+    <button onclick="fs()" style="margin-left:0.5rem">Fullscreen</button>
+  </div>
+</div>
+
+<div class="deck" id="deck">
+
+  <!-- 1: Title -->
+  <div class="slide slide-title" data-s="1">
+    <div class="si">
+      <div class="sp">
+        <div class="tag">Technical Initiative</div>
+        <h1><em>eClinicalWorks</em><br>Integration Plan</h1>
+        <p class="sub">Building an automated data pipeline from eCW to executive dashboards &mdash; encounters, scheduling, billing, and clinical quality at your fingertips.</p>
+        <div class="meta">
+          <div><strong>Organization</strong>AssociatesMD</div>
+          <div><strong>Approved by</strong>Felipe (CEO) &mdash; March 20, 2026</div>
+          <div><strong>Integration Path</strong>HL7v2 via Mirth Connect</div>
+          <div><strong>Classification</strong>Internal &mdash; Board Review</div>
+        </div>
+      </div>
+      <span class="sn" style="color:rgba(248,247,244,0.25);">01</span>
+    </div>
+  </div>
+
+  <!-- 2: The Problem -->
+  <div class="slide" data-s="2">
+    <div class="si">
+      <div class="sp">
+        <div class="tag">The Problem</div>
+        <h2>We Can't See Our Own Data</h2>
+        <div class="g2">
+          <div>
+            <p class="lead" style="margin-bottom:1.25rem;">eClinicalWorks holds all our clinical, scheduling, and billing data &mdash; but there's no automated way to extract it for reporting.</p>
+            <ul class="cl">
+              <li><strong>No automated reporting pipeline</strong> &mdash; all reports are manual exports or eCW built-in views</li>
+              <li><strong>No executive dashboard</strong> &mdash; Felipe has no real-time visibility into encounters, no-shows, or revenue</li>
+              <li><strong>No cross-system analytics</strong> &mdash; data is siloed inside eCW with no easy way to combine or transform</li>
+              <li><strong>Provider productivity is opaque</strong> &mdash; no standardized scorecard or trend tracking</li>
+              <li><strong>Revenue cycle is a black box</strong> &mdash; AR aging, denials, and collections require manual spreadsheet work</li>
+            </ul>
+          </div>
+          <div>
+            <div class="card dark" style="height:100%;">
+              <h3>What We Need</h3>
+              <ul class="cl" style="margin-top:0.5rem;">
+                <li style="color:rgba(248,247,244,0.65);"><strong style="color:var(--paper);">Executive dashboard</strong> &mdash; Felipe's #1 priority</li>
+                <li style="color:rgba(248,247,244,0.65);"><strong style="color:var(--paper);">Provider scorecards</strong> &mdash; encounters, CPTs, utilization</li>
+                <li style="color:rgba(248,247,244,0.65);"><strong style="color:var(--paper);">Scheduling analytics</strong> &mdash; no-show rates, fill rates</li>
+                <li style="color:rgba(248,247,244,0.65);"><strong style="color:var(--paper);">Revenue cycle visibility</strong> &mdash; charges, collections, AR</li>
+                <li style="color:rgba(248,247,244,0.65);"><strong style="color:var(--paper);">Clinical quality metrics</strong> &mdash; HEDIS/MIPS readiness</li>
+              </ul>
+              <div class="hb" style="margin-top:1rem;border-color:var(--forest-light);background:rgba(45,122,79,0.1);">
+                <p style="color:rgba(248,247,244,0.7);"><strong style="color:var(--forest-light);">Goal:</strong> Real-time, automated dashboards that update themselves &mdash; no manual exports.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <span class="sn">02</span>
+    </div>
+  </div>
+
+  <!-- 3: Integration Options -->
+  <div class="slide" data-s="3">
+    <div class="si">
+      <div class="sp">
+        <div class="tag">Options Evaluated</div>
+        <h2>Three Paths &mdash; One Winner</h2>
+        <p class="lead" style="margin-bottom:1.25rem;">We evaluated three approaches to pull data from eCW. Felipe approved HL7v2 on March 20.</p>
+
+        <div class="g3" style="margin-top:0.5rem;">
+          <div class="card forest" style="box-shadow:0 0 0 2px var(--forest),0 8px 24px rgba(26,77,46,0.1);">
+            <div style="position:absolute;top:-0.55rem;right:1.25rem;background:var(--forest);color:white;font-size:0.6rem;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;padding:0.25rem 0.65rem;border-radius:100px;">Selected</div>
+            <div class="card-icon">&#9878;</div>
+            <h3>Option 1: HL7v2</h3>
+            <ul class="cl" style="font-size:0.82rem;">
+              <li><strong>Most mature</strong> path for eCW</li>
+              <li>Real-time message feeds (ADT, SIU, DFT, ORU)</li>
+              <li>Proven with Mirth Connect</li>
+              <li>3-4 month eCW provisioning lead time</li>
+            </ul>
+            <div class="hb" style="margin-top:0.75rem;">
+              <p><strong>Verdict:</strong> Best ROI. Start here.</p>
+            </div>
+          </div>
+
+          <div class="card" style="opacity:0.7;">
+            <div class="card-icon">&#9729;</div>
+            <h3>Option 2: FHIR R4</h3>
+            <ul class="cl" style="font-size:0.82rem;">
+              <li>Modern API standard</li>
+              <li>Bulk $export for clinical data</li>
+              <li>Rate-limited (250 calls/min)</li>
+              <li>eCW FHIR is still maturing</li>
+            </ul>
+            <div class="hb" style="margin-top:0.75rem;">
+              <p><strong>Verdict:</strong> Phase 2 supplement for quality metrics.</p>
+            </div>
+          </div>
+
+          <div class="card" style="opacity:0.7;">
+            <div class="card-icon">&#9783;</div>
+            <h3>Option 3: Healow / eBO</h3>
+            <ul class="cl" style="font-size:0.82rem;">
+              <li>Healow Open Access portal</li>
+              <li>eBO = built-in reporting/BI</li>
+              <li>License status unknown</li>
+              <li>Limited customization</li>
+            </ul>
+            <div class="hb" style="margin-top:0.75rem;">
+              <p><strong>Verdict:</strong> Supplement for revenue cycle data.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <span class="sn">03</span>
+    </div>
+  </div>
+
+  <!-- 4: Architecture -->
+  <div class="slide" data-s="4">
+    <div class="si">
+      <div class="sp">
+        <div class="tag">Architecture</div>
+        <h2>End-to-End Data Pipeline</h2>
+        <p class="lead" style="margin-bottom:1rem;">All infrastructure runs on our homelab. No PHI on public internet. No extra BAAs needed.</p>
+
+        <div class="arch"><span class="dim">╭──────────────────╮</span>          <span class="dim">╭──────────────────────╮</span>        <span class="dim">╭──────────────────╮</span>       <span class="dim">╭─────────────────╮</span>
+<span class="grn">│  eCW Cloud EHR   │</span>  <span class="dim">───▸</span>  <span class="amb">│   Mirth Connect 4.x   │</span>  <span class="dim">───▸</span>  <span class="blu">│  PostgreSQL 16   │</span> <span class="dim">───▸</span>  <span class="cyn">│    Metabase      │</span>
+<span class="dim">│</span> <span class="grn">ADT SIU DFT ORU</span>  <span class="dim">│</span>          <span class="dim">│</span> <span class="amb">Parse → Normalize → DB</span> <span class="dim">│</span>        <span class="dim">│</span> <span class="blu">raw→staging→rpt</span>  <span class="dim">│</span>       <span class="dim">│</span> <span class="cyn">Dashboards</span>      <span class="dim">│</span>
+<span class="dim">╰────────┬─────────╯</span>          <span class="dim">╰──────────────────────╯</span>        <span class="dim">╰──────────────────╯</span>       <span class="dim">╰─────────────────╯</span>
+         <span class="dim">│</span>
+    <span class="grn">VPN Tunnel</span>
+  <span class="dim">(IPsec, eCW-managed)</span></div>
+
+        <div class="g4" style="margin-top:1.25rem;">
+          <div class="card forest" style="padding:1rem;">
+            <h3 style="font-size:0.65rem;">HL7v2 Messages</h3>
+            <ul class="cl" style="font-size:0.78rem;">
+              <li><strong>ADT</strong> &mdash; patients &amp; encounters</li>
+              <li><strong>SIU</strong> &mdash; scheduling</li>
+              <li><strong>DFT</strong> &mdash; charges &amp; billing</li>
+              <li><strong>ORU</strong> &mdash; lab results</li>
+            </ul>
+          </div>
+          <div class="card amber" style="padding:1rem;">
+            <h3 style="font-size:0.65rem;">Mirth Connect</h3>
+            <ul class="cl" style="font-size:0.78rem;">
+              <li>MLLP listener per message</li>
+              <li>Parse all HL7 segments</li>
+              <li>ACK response handling</li>
+              <li>Error/dead-letter queue</li>
+            </ul>
+          </div>
+          <div class="card teal" style="padding:1rem;">
+            <h3 style="font-size:0.65rem;">PostgreSQL</h3>
+            <ul class="cl" style="font-size:0.78rem;">
+              <li>3-layer schema (raw/staging/rpt)</li>
+              <li>Dedup on MSH-10</li>
+              <li>pgaudit for compliance</li>
+              <li>pg_cron for refreshes</li>
+            </ul>
+          </div>
+          <div class="card" style="padding:1rem;border-top:3px solid #56d4dd;">
+            <h3 style="font-size:0.65rem;color:var(--teal);">Metabase</h3>
+            <ul class="cl" style="font-size:0.78rem;">
+              <li>Community Edition (free)</li>
+              <li>VPN-only access</li>
+              <li>Role-based dashboards</li>
+              <li>Scheduled email reports</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <span class="sn">04</span>
+    </div>
+  </div>
+
+  <!-- 5: Dashboard Preview -->
+  <div class="slide" data-s="5">
+    <div class="si">
+      <div class="sp">
+        <div class="tag">Executive Dashboard</div>
+        <h2>What Felipe Will See &mdash; Priority #1</h2>
+        <p class="lead" style="margin-bottom:0.75rem;">The executive dashboard is powered by just two HL7v2 feeds (ADT + SIU) &mdash; 80% of the value from 50% of the work.</p>
+
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dc-label">Encounters This Month</div>
+            <div class="dc-val" style="color:var(--forest-light);">1,247</div>
+            <div class="dc-sub">+8.3% vs prior month</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">No-Show Rate</div>
+            <div class="dc-val" style="color:var(--amber);">12.4%</div>
+            <div class="dc-sub">target: &lt;10%</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">New Patients (MTD)</div>
+            <div class="dc-val" style="color:#56d4dd;">89</div>
+            <div class="dc-sub">vs 72 same period last month</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">Provider Utilization</div>
+            <div class="dc-val" style="color:var(--forest-light);">78%</div>
+            <div class="dc-sub">scheduled vs available hours</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">Cancellations This Week</div>
+            <div class="dc-val" style="color:var(--rust);">34</div>
+            <div class="dc-sub">down from 41 last week</div>
+          </div>
+          <div class="dash-card">
+            <div class="dc-label">Payer Mix</div>
+            <div class="dc-val" style="color:var(--amber);font-size:1.4rem;">Medicare 42%</div>
+            <div class="dc-sub">Commercial 31% | Medicaid 18%</div>
+          </div>
+        </div>
+
+        <div class="g2" style="margin-top:1.25rem;">
+          <div class="hb">
+            <p><strong>Additional dashboards planned:</strong> Provider Performance Scorecard, Scheduling &amp; Patient Flow, Revenue Cycle (requires DFT or eBO), Clinical Quality (requires FHIR/ORU).</p>
+          </div>
+          <div class="hb amber">
+            <p><strong>All data auto-refreshes.</strong> No manual exports. Felipe gets a weekly email summary plus real-time access via VPN.</p>
+          </div>
+        </div>
+      </div>
+      <span class="sn">05</span>
+    </div>
+  </div>
+
+  <!-- 6: Phases Overview -->
+  <div class="slide" data-s="6">
+    <div class="si">
+      <div class="sp">
+        <div class="tag">Implementation</div>
+        <h2>Phased Rollout &mdash; 16 Weeks</h2>
+
+        <div class="phase-row p-green">
+          <div class="phase-label">Phase 1<div class="pw">Weeks 1&ndash;2</div></div>
+          <div class="phase-body">
+            <h3 style="margin-top:0;">Project Setup &amp; eCW Coordination</h3>
+            <ul>
+              <li>Contact eCW Interface Services &mdash; request ADT, SIU, DFT, ORU outbound interfaces</li>
+              <li>Confirm what's in current contract vs. add-on (especially DFT charges interface)</li>
+              <li>Initiate VPN setup between eCW hosted environment and AMD network</li>
+              <li>Ask about eBO licensing status and FHIR R4 backend access pricing</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-row p-amber">
+          <div class="phase-label">Phase 2<div class="pw">Weeks 2&ndash;6</div></div>
+          <div class="phase-body">
+            <h3 style="margin-top:0;">Infrastructure &amp; Mirth Connect</h3>
+            <ul>
+              <li>Deploy Mirth Connect 4.x + PostgreSQL 16 on homelab (Docker)</li>
+              <li>Build MLLP channels per message type (ADT, SIU, DFT, ORU)</li>
+              <li>Create 3-layer database schema (raw → staging → reporting)</li>
+              <li>Test against synthetic HL7v2 messages (Synthea or hand-crafted)</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-row p-teal">
+          <div class="phase-label">Phase 3<div class="pw">Weeks 4&ndash;8</div></div>
+          <div class="phase-body">
+            <h3 style="margin-top:0;">Dashboard Layer</h3>
+            <ul>
+              <li>Deploy Metabase, connect to PostgreSQL reporting views</li>
+              <li>Build Executive Dashboard first (Felipe's priority), then Provider Scorecard</li>
+              <li>Configure user groups: Executives, Providers, Billing, Clinical Admin, IT</li>
+              <li>Validate dashboards with synthetic data before go-live</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="phase-row p-rust">
+          <div class="phase-label">Phase 4<div class="pw">Weeks 8&ndash;16</div></div>
+          <div class="phase-body">
+            <h3 style="margin-top:0;">Go-Live &amp; Real Data</h3>
+            <ul>
+              <li>VPN connectivity testing with eCW &mdash; receive test messages</li>
+              <li>Validate parsing accuracy against eCW's interface spec</li>
+              <li>Handle eCW-specific quirks (delayed SIU, batch DFT, missing LOINCs)</li>
+              <li>Switch dashboards from synthetic to real data &mdash; spot-check accuracy</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <span class="sn">06</span>
+    </div>
+  </div>
+
+  <!-- 7: eCW Gotchas -->
+  <div class="slide" data-s="7">
+    <div class="si">
+      <div class="sp">
+        <div class="tag">Risk Awareness</div>
+        <h2>eCW-Specific Gotchas</h2>
+        <p class="lead" style="margin-bottom:1rem;">eCW is not plug-and-play. The board should understand these constraints upfront.</p>
+
+        <div class="g2">
+          <div>
+            <div class="card rust" style="margin-bottom:1rem;">
+              <h3 style="color:var(--rust);">Critical Constraints</h3>
+              <ul class="cl" style="font-size:0.85rem;">
+                <li><strong>No self-serve interfaces</strong> &mdash; everything goes through eCW Interface Services with 4-8 week lead time per interface</li>
+                <li><strong>No public sandbox</strong> &mdash; testing only during eCW's provisioned testing window</li>
+                <li><strong>VPN required</strong> &mdash; cloud-hosted eCW mandates IPsec tunnel (they control the endpoint)</li>
+                <li><strong>ACK format must be exact</strong> &mdash; malformed ACKs cause interface suspension requiring eCW manual intervention</li>
+              </ul>
+            </div>
+
+            <div class="card amber">
+              <h3 style="color:var(--amber);">Revenue Cycle Gap</h3>
+              <ul class="cl" style="font-size:0.85rem;">
+                <li><strong>Revenue data NOT available via HL7v2</strong> &mdash; AR aging, denials, payments require eBO or direct DB (likely unavailable)</li>
+                <li><strong>DFT (charges) may be a separate license add-on</strong> &mdash; must confirm with eCW before assuming it's included</li>
+              </ul>
+            </div>
+          </div>
+
+          <div>
+            <div class="card" style="margin-bottom:1rem;">
+              <h3>Data Quirks to Plan For</h3>
+              <ul class="cl" style="font-size:0.85rem;">
+                <li><strong>SIU no-show messages</strong> may arrive hours after appointment time</li>
+                <li><strong>DFT charges</strong> may arrive in end-of-day batches, not real-time</li>
+                <li><strong>ORU LOINC codes</strong> may be missing &mdash; need local code mapping table</li>
+                <li><strong>Provider IDs</strong> in AIP segment may be eCW internal, not NPI</li>
+                <li><strong>Healow portal bookings</strong> may not generate SIU in older eCW versions</li>
+                <li><strong>FHIR rate limit: 250 calls/min</strong> &mdash; tight for historical backfill</li>
+              </ul>
+            </div>
+
+            <div class="hb rust">
+              <p><strong>Mitigation:</strong> We develop and test against synthetic data while waiting for eCW provisioning. By the time they're ready, we're ready.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <span class="sn">07</span>
+    </div>
+  </div>
+
+  <!-- 8: Tech Stack -->
+  <div class="slide" data-s="8">
+    <div class="si">
+      <div class="sp">
+        <div class="tag">Technology</div>
+        <h2>Technology Stack</h2>
+
+        <table class="dt" style="margin-top:0.5rem;">
+          <thead>
+            <tr>
+              <th>Layer</th>
+              <th>Tool</th>
+              <th>Why This Choice</th>
+              <th>Cost</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Integration Engine</strong></td>
+              <td class="mono">Mirth Connect 4.x</td>
+              <td>Open source, native MLLP, eCW-tested, healthcare industry standard</td>
+              <td class="mono" style="color:var(--forest);">Free</td>
+            </tr>
+            <tr>
+              <td><strong>Database</strong></td>
+              <td class="mono">PostgreSQL 16</td>
+              <td>Proven, JSONB support for HL7 payloads, pgaudit for compliance</td>
+              <td class="mono" style="color:var(--forest);">Free</td>
+            </tr>
+            <tr>
+              <td><strong>Dashboards</strong></td>
+              <td class="mono">Metabase Community</td>
+              <td>Best UX for non-technical users (Felipe, providers, billing)</td>
+              <td class="mono" style="color:var(--forest);">Free</td>
+            </tr>
+            <tr>
+              <td><strong>Scheduled Jobs</strong></td>
+              <td class="mono">pg_cron</td>
+              <td>Materialized view refreshes, nightly aggregations</td>
+              <td class="mono" style="color:var(--forest);">Free</td>
+            </tr>
+            <tr>
+              <td><strong>Network</strong></td>
+              <td class="mono">VPN (IPsec)</td>
+              <td>Required by eCW, HIPAA-compliant tunnel</td>
+              <td class="mono">Bundled</td>
+            </tr>
+            <tr>
+              <td><strong>Monitoring</strong></td>
+              <td class="mono">Grafana</td>
+              <td>Mirth channel health, DB performance, alerting</td>
+              <td class="mono" style="color:var(--forest);">Free</td>
+            </tr>
+            <tr>
+              <td><strong>Infrastructure</strong></td>
+              <td class="mono">AMD Homelab</td>
+              <td>Already available &mdash; no cloud PHI, no extra BAAs</td>
+              <td class="mono" style="color:var(--forest);">Existing</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="hb" style="margin-top:1.5rem;">
+          <p><strong>Key takeaway:</strong> The entire software stack is open-source and free. The only costs are eCW interface fees and our time.</p>
+        </div>
+      </div>
+      <span class="sn">08</span>
+    </div>
+  </div>
+
+  <!-- 9: Costs -->
+  <div class="slide" data-s="9">
+    <div class="si">
+      <div class="sp">
+        <div class="tag">Financial</div>
+        <h2>Estimated Costs</h2>
+
+        <div class="g2">
+          <div>
+            <h3>One-Time Setup Fees (eCW)</h3>
+            <table class="dt" style="font-size:0.85rem;">
+              <thead>
+                <tr><th>Item</th><th style="text-align:right;">Estimate</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>HL7v2 interface setup (ADT)</td><td class="mono" style="text-align:right;">$1,500 &ndash; $5,000</td></tr>
+                <tr><td>HL7v2 interface setup (SIU)</td><td class="mono" style="text-align:right;">$1,500 &ndash; $5,000</td></tr>
+                <tr><td>HL7v2 interface setup (DFT)</td><td class="mono" style="text-align:right;">$1,500 &ndash; $5,000</td></tr>
+                <tr><td>HL7v2 interface setup (ORU)</td><td class="mono" style="text-align:right;">$1,500 &ndash; $5,000</td></tr>
+                <tr><td>VPN setup</td><td class="mono" style="text-align:right;">Bundled or separate</td></tr>
+                <tr class="total"><td><strong>Total Setup</strong></td><td class="mono" style="text-align:right;font-weight:700;">$6,000 &ndash; $20,000</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div>
+            <h3>Recurring Monthly Fees</h3>
+            <table class="dt" style="font-size:0.85rem;">
+              <thead>
+                <tr><th>Item</th><th style="text-align:right;">Estimate</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Interface fee (per type, &times;4)</td><td class="mono" style="text-align:right;">$800 &ndash; $2,000/mo</td></tr>
+                <tr><td>eBO license (if needed)</td><td class="mono" style="text-align:right;">Negotiated annually</td></tr>
+                <tr><td>Metabase Pro (future)</td><td class="mono" style="text-align:right;">$500/mo when needed</td></tr>
+                <tr><td>Software stack</td><td class="mono" style="text-align:right;color:var(--forest);">$0 (open source)</td></tr>
+                <tr><td>Infrastructure (homelab)</td><td class="mono" style="text-align:right;color:var(--forest);">$0 (existing)</td></tr>
+                <tr class="total"><td><strong>Total Monthly</strong></td><td class="mono" style="text-align:right;font-weight:700;">$800 &ndash; $2,000/mo</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="cbar" style="margin-top:1.5rem;">
+          <div class="col">
+            <div class="cl">Year 1 Total</div>
+            <div class="cv" style="color:var(--forest);">$16K&ndash;$44K</div>
+            <div class="cn">setup + 12 months recurring</div>
+          </div>
+          <div class="col">
+            <div class="cl">Year 2+ Annual</div>
+            <div class="cv" style="color:var(--teal);">$10K&ndash;$24K</div>
+            <div class="cn">recurring only</div>
+          </div>
+          <div class="col">
+            <div class="cl">vs. Dedicated BI Analyst</div>
+            <div class="cv" style="color:var(--amber);">$65K+/yr</div>
+            <div class="cn">salary + benefits</div>
+          </div>
+        </div>
+
+        <p class="fn">* All eCW pricing requires confirmation with eCW account representative. Ranges based on industry benchmarks.</p>
+      </div>
+      <span class="sn">09</span>
+    </div>
+  </div>
+
+  <!-- 10: HIPAA & Security -->
+  <div class="slide" data-s="10">
+    <div class="si">
+      <div class="sp">
+        <div class="tag">Compliance</div>
+        <h2>HIPAA &amp; Security</h2>
+
+        <div class="g2">
+          <div>
+            <h3>Built-In Safeguards</h3>
+            <ul class="cl ck">
+              <li><strong>All HL7v2 over encrypted VPN tunnel</strong> &mdash; eCW requirement, HIPAA compliant</li>
+              <li><strong>PostgreSQL encrypted at rest</strong> &mdash; LUKS/FileVault on homelab</li>
+              <li><strong>SSL connections enforced</strong> for all database access</li>
+              <li><strong>Metabase internal-only</strong> &mdash; behind VPN, HTTPS with valid cert, no public exposure</li>
+              <li><strong>pgaudit enabled</strong> for database-level audit trail</li>
+              <li><strong>No PHI on public internet &mdash; ever</strong></li>
+              <li><strong>6-year data retention</strong> &mdash; Florida medical records requirement</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Existing Agreements</h3>
+            <div class="card" style="margin-bottom:1rem;">
+              <ul class="cl ck" style="font-size:0.88rem;">
+                <li><strong>BAA with eCW</strong> &mdash; already in place</li>
+                <li><strong>No additional BAAs needed</strong> &mdash; all infrastructure is on-premise (homelab)</li>
+                <li><strong>No cloud PHI</strong> &mdash; data stays within AMD's physical network</li>
+              </ul>
+            </div>
+
+            <div class="hb">
+              <p><strong>This architecture was specifically designed</strong> to avoid cloud PHI complexity. Everything runs on hardware we own, in a building we control. The only external connection is the eCW VPN tunnel &mdash; which they mandate and encrypt.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <span class="sn">10</span>
+    </div>
+  </div>
+
+  <!-- 11: Action Items -->
+  <div class="slide" data-s="11">
+    <div class="si">
+      <div class="sp">
+        <div class="tag">Immediate Actions</div>
+        <h2>What Needs to Happen Now</h2>
+        <p class="lead" style="margin-bottom:1.25rem;">Five action items to kick off the project. Items 1-3 are on the critical path &mdash; everything else can proceed in parallel.</p>
+
+        <div style="display:flex;flex-direction:column;gap:0.6rem;">
+          <div class="phase-row p-green">
+            <div class="phase-label" style="width:50px;min-width:50px;text-align:center;font-size:1.2rem;font-family:'Playfair Display',serif;">1</div>
+            <div class="phase-body">
+              <strong>Contact eCW Interface Services</strong> &mdash; Request ADT, SIU, DFT, ORU outbound interfaces. Get pricing and timeline. This is the longest lead item (4-8 weeks).
+            </div>
+          </div>
+
+          <div class="phase-row p-green">
+            <div class="phase-label" style="width:50px;min-width:50px;text-align:center;font-size:1.2rem;font-family:'Playfair Display',serif;">2</div>
+            <div class="phase-body">
+              <strong>Ask about eBO licensing</strong> &mdash; Is it included in our current contract? Can reports be auto-emailed as CSV? This determines our revenue cycle data strategy.
+            </div>
+          </div>
+
+          <div class="phase-row p-green">
+            <div class="phase-label" style="width:50px;min-width:50px;text-align:center;font-size:1.2rem;font-family:'Playfair Display',serif;">3</div>
+            <div class="phase-body">
+              <strong>Initiate VPN provisioning</strong> &mdash; IPsec tunnel between eCW hosted environment and AMD network. eCW controls the endpoint &mdash; start early.
+            </div>
+          </div>
+
+          <div class="phase-row p-amber">
+            <div class="phase-label" style="width:50px;min-width:50px;text-align:center;font-size:1.2rem;font-family:'Playfair Display',serif;">4</div>
+            <div class="phase-body">
+              <strong>Ask about FHIR R4 backend access</strong> &mdash; Pricing and Bulk $export availability for future clinical quality reporting (Phase 2+).
+            </div>
+          </div>
+
+          <div class="phase-row p-teal">
+            <div class="phase-label" style="width:50px;min-width:50px;text-align:center;font-size:1.2rem;font-family:'Playfair Display',serif;">5</div>
+            <div class="phase-body">
+              <strong>Start Mirth Connect development immediately</strong> &mdash; Don't wait for eCW. Build and test all channels against synthetic HL7v2 messages so we're ready when they are.
+            </div>
+          </div>
+        </div>
+
+        <div class="hb rust" style="margin-top:1rem;">
+          <p><strong>Do NOT plan around direct MySQL access</strong> &mdash; not available for cloud-hosted eCW. HL7v2 is the only real-time path.</p>
+        </div>
+      </div>
+      <span class="sn">11</span>
+    </div>
+  </div>
+
+  <!-- 12: CTA -->
+  <div class="slide slide-cta" data-s="12">
+    <div class="si">
+      <div class="sp" style="align-items:center;text-align:center;">
+        <div class="tag" style="border-color:var(--forest-light);color:var(--forest-light);">Board Approval Requested</div>
+        <h1>Let's Build the <em>Pipeline</em></h1>
+        <p>We're requesting board approval to engage eCW Interface Services, allocate budget for interface fees, and begin building the integration infrastructure.</p>
+
+        <div class="cta-grid">
+          <div class="cta-item">
+            <div class="cta-step">Approve</div>
+            <div class="cta-text">Year 1 budget<br><strong>$16K&ndash;$44K</strong></div>
+          </div>
+          <div class="cta-item">
+            <div class="cta-step">Authorize</div>
+            <div class="cta-text">eCW interface<br><strong>contract &amp; VPN setup</strong></div>
+          </div>
+          <div class="cta-item">
+            <div class="cta-step">Greenlight</div>
+            <div class="cta-text">16-week<br><strong>phased implementation</strong></div>
+          </div>
+        </div>
+
+        <div style="margin-top:3rem;padding-top:1.5rem;border-top:1px solid rgba(248,247,244,0.08);">
+          <p style="font-size:0.78rem;color:rgba(248,247,244,0.25);">
+            AssociatesMD &bull; CTO Office &bull; March 2026 &bull; Confidential<br>
+            HL7v2 integration path approved by Felipe (CEO) on March 20, 2026
+          </p>
+        </div>
+      </div>
+      <span class="sn" style="color:rgba(248,247,244,0.2);">12</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const dk=document.getElementById('deck'),ss=document.querySelectorAll('.slide'),ct=document.getElementById('ctr'),t=ss.length;
+  function cur(){return Math.round(dk.scrollTop/dk.clientHeight)}
+  function upd(){ct.textContent=String(cur()+1).padStart(2,'0')+' / '+String(t).padStart(2,'0')}
+  function go(n){ss[n].scrollIntoView({behavior:'smooth'})}
+  function next(){const c=cur();if(c<t-1)go(c+1)}
+  function prev(){const c=cur();if(c>0)go(c-1)}
+  function fs(){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()}
+  dk.addEventListener('scroll',upd);
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='ArrowDown'||e.key===' '){e.preventDefault();next()}
+    if(e.key==='ArrowLeft'||e.key==='ArrowUp'){e.preventDefault();prev()}
+    if(e.key==='f'||e.key==='F')fs()
+  });
+  upd();
+</script>
+
+</body>
+</html>
